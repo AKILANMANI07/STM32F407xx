@@ -22,6 +22,7 @@ int main()
 	GPIO_Led.GPIO_PinConfig.GPIO_PuPdControl=GPIO_PULLU;
 	GPIO_PeriClockControl(GPIO_Led.pGPIO,ENABLE);
 	GPIO_Init(&GPIO_Led);
+
 	while(1)
 	{
 		GPIO_ToggleOutputPin(GPIO_Led.pGPIO,GPIO_Led.GPIO_PinConfig.GPIO_PinNumber );
@@ -29,6 +30,11 @@ int main()
 	}
 
 	return 0;
+}
+
+void EXTI0_IRQHandler(void)
+{
+	GPIO_IRQHandling(0);
 }
 
 

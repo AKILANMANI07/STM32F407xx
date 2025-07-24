@@ -47,6 +47,14 @@ void GPIO_PeriClockControl(GPIO_RegDef_t *PGPIOx,uint8_t EnOrDi)
 			{
 						GPIOH_PCLK_EN;
 			}
+			else if(PGPIOx== GPIOI)
+			{
+						GPIOI_PCLK_EN;
+			}
+			else if(PGPIOx== GPIOJ)
+			{
+						GPIOJ_PCLK_EN;
+			}
 			else
 			{
 						GPIOI_PCLK_EN;
@@ -86,13 +94,67 @@ void GPIO_PeriClockControl(GPIO_RegDef_t *PGPIOx,uint8_t EnOrDi)
 					{
 								GPIOH_PCLK_DI;
 					}
+					else if(PGPIOx== GPIOI)
+					{
+								GPIOI_PCLK_DI;
+					}
+					else if(PGPIOx== GPIOK)
+					{
+								GPIOJ_PCLK_DI;
+					}
 					else
 					{
 								GPIOI_PCLK_DI;
 					}
 	}
 }
-
+uint8_t GPIO_BASEADDR_TO_CODE(GPIO_RegDef_t *PGPIOx)
+{
+	if(PGPIOx== GPIOA)
+	{
+		return 0;
+	}
+	else if(PGPIOx== GPIOB)
+	{
+		return 1;
+	}
+	else if(PGPIOx== GPIOC)
+	{
+		return 2;
+	}
+	else if(PGPIOx== GPIOD){
+		return 3;
+	}
+	else if(PGPIOx== GPIOE)
+	{
+		return 4;
+	}
+	else if(PGPIOx== GPIOF)
+	{
+		return 5;
+	}
+	else if(PGPIOx== GPIOG)
+	{
+		return 6;
+	}
+	else if(PGPIOx== GPIOH)
+	{
+		return 7;
+	}
+	else if(PGPIOx== GPIOG)
+	{
+		return 8;
+	}
+	else if(PGPIOx== GPIOH)
+	{
+		return 9;
+	}
+	else
+	{
+		return 10;
+	}
+	return 0;
+}
 /* Init and DeInit*/
 void GPIO_Init(GPIO_Handle_t *pGPIOHandle)
 {
@@ -107,7 +169,32 @@ void GPIO_Init(GPIO_Handle_t *pGPIOHandle)
 	}
 	else
 	{
-		//TODO: for Interrupt mode
+		 /* 1. configure Falling or Rasing Trigger in EXTI*/
+		if(pGPIOHandle->GPIO_PinConfig.GPIO_Mode==GPIO_MODE_IT_FT)
+		{
+			(EXTI)->EXTI_RTSR &= ~(1<<pGPIOHandle->GPIO_PinConfig.GPIO_PinNumber);
+			(EXTI)->EXTI_FTSR |= (1<<pGPIOHandle->GPIO_PinConfig.GPIO_PinNumber);
+		}
+		else if(pGPIOHandle->GPIO_PinConfig.GPIO_Mode==GPIO_MODE_IT_RT)
+		{
+			(EXTI)->EXTI_FTSR &= ~(1<<pGPIOHandle->GPIO_PinConfig.GPIO_PinNumber);
+			(EXTI)->EXTI_RTSR |= (1<<pGPIOHandle->GPIO_PinConfig.GPIO_PinNumber);
+		}
+		else
+		{
+			(EXTI)->EXTI_FTSR |= (1<<pGPIOHandle->GPIO_PinConfig.GPIO_PinNumber);
+			(EXTI)->EXTI_RTSR |= (1<<pGPIOHandle->GPIO_PinConfig.GPIO_PinNumber);
+		}
+		/*2.configure the GPIO port selection in SYSCFG_EXTICR*/
+		uint8_t temp1= pGPIOHandle->GPIO_PinConfig.GPIO_PinNumber/4;
+		uint8_t temp2= pGPIOHandle->GPIO_PinConfig.GPIO_PinNumber%4;
+		uint32_t portcode=GPIO_BASEADDR_TO_CODE(pGPIOHandle->pGPIO);
+		SYSCFG_PCLK_EN; //enable SYSCFG_pheripheral clock
+		(SYSCFG)->SYSCFG_EXTICR[temp1] |= portcode<<(temp2*4);
+		/*3.configure the IMR(Interrupt Mask Register)in EXTI*/
+		(EXTI)->EXTI_IMR |= (1<<pGPIOHandle->GPIO_PinConfig.GPIO_PinNumber);
+
+
 	}
 
 	//2. configure speed
@@ -230,11 +317,51 @@ void GPIO_ToggleOutputPin(GPIO_RegDef_t *PGPIOx, uint8_t PinNumber)
 }
 
 /*Interrupt Configuration and Handling*/
-void GPIO_IRQconfig(uint8_t IRQNumber, uint8_t IRQPriority, uint8_t EnorDi)
+void GPIO_IRQITconfig(uint8_t IRQNumber, uint8_t EnorDi)
+{
+	if(EnorDi==ENABLE)
+	{
+		if(IRQNumber<32)
+		{
+			*(NVIC_ISER0) |= 1<<IRQNumber;
+		}
+		else if(IRQNumber<64)
+		{
+			*(NVIC_ISER1) |= 1<<(IRQNumber-32);
+		}
+		else
+		{
+			*(NVIC_ISER1) |= 1<<(IRQNumber-64);
+		}
+	}
+	else
+	{
+		if(IRQNumber<32)
+		{
+			*(NVIC_ICER0) |= 1<<IRQNumber;
+		}
+		else if(IRQNumber<64)
+		{
+			*(NVIC_ICER1) |= 1<<(IRQNumber-32);
+		}
+		else
+		{
+			*(NVIC_ICER1) |= 1<<(IRQNumber-64);
+		}
+
+	}
+}
+void GPIO_IRQPriorityConfig(uint8_t IRQNumber,uint8_t IRQPriority)
 {
 
+	uint8_t  iprx= IRQNumber/4;
+	uint8_t iprx_section= IRQNumber%4;
+	*((NVIC_PR_BASE_ADDR)+iprx) |= IRQPriority<< ( (iprx_section*8 )+ 4); //lower 4 bits are not implemented stm32
 }
 void GPIO_IRQHandling(uint8_t PinNumber)
 {
-
+	if((EXTI)->EXTI_PR & 1<<PinNumber)
+	{
+		(EXTI)->EXTI_PR|=1<<PinNumber;
+	}
 }

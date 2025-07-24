@@ -80,6 +80,7 @@ void GPIO_WritToOutputPort(GPIO_RegDef_t *PGPIOx,uint16_t PortValue);
 void GPIO_ToggleOutputPin(GPIO_RegDef_t *PGPIOx, uint8_t PinNumber);
 
 /*Interrupt Configuration and Handling*/
-void GPIO_IRQconfig(uint8_t IRQNumber, uint8_t IRQPriority, uint8_t EnorDi);
+void GPIO_IRQITconfig(uint8_t IRQNumber, uint8_t EnorDi);
+void GPIO_IRQPriorityConfig(uint8_t IRQNumber,uint8_t IRQPriority);
 void GPIO_IRQHandling(uint8_t PinNumber);
 #endif /* INC_STM32F407XX_GPIO_DRIVER_H_ */

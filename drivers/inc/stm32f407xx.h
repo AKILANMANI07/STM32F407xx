@@ -10,6 +10,23 @@
 
 #define __vol volatile
 
+/*ARM Cortex M4 Processor NVIC ISERx register Address*/
+#define NVIC_ISER0 					(__vol uint32_t*)0xE000E100
+#define NVIC_ISER1 					(__vol uint32_t*)0xE000E104
+#define NVIC_ISER2 					(__vol uint32_t*)0xE000E108
+#define NVIC_ISER3 					(__vol uint32_t*)0xE000E10C
+
+/*ARM Cortex M4 Processor NVIC ISERx register Address*/
+#define NVIC_ICER0 					(__vol uint32_t*)0xE000E180
+#define NVIC_ICER1 					(__vol uint32_t*)0xE000E184
+#define NVIC_ICER2 					(__vol uint32_t*)0xE000E188
+#define NVIC_ICER3 					(__vol uint32_t*)0xE000E18C
+
+/*ARM Cortex M4 Processor Interrrupt Priority register Address*/ //59 IRQ priority register available
+
+#define NVIC_PR_BASE_ADDR 			(__vol uint32_t*)0xE000E400
+
+/*Base address of Flash and SRAM*/
 
 #define FLASH_BASEADDR				0X08000000U
 #define SRAM1_BASEADDR 				0X20000000U
@@ -107,6 +124,24 @@ typedef struct
 
 }RCC_RegDef_t;
 
+typedef struct
+{
+	uint32_t EXTI_IMR;
+	uint32_t EXTI_EMR;
+	uint32_t EXTI_RTSR;
+	uint32_t EXTI_FTSR;
+	uint32_t EXTI_SWIER;
+	uint32_t EXTI_PR;
+}EXTI_RegDef_t;
+typedef struct
+{
+	uint32_t SYSCFG_MEMRMP;
+	uint32_t SYSCFG_PMC;
+	uint32_t SYSCFG_EXTICR[4];
+	uint32_t RESERVED[2];
+	uint32_t SYSCFG_CMPCR;
+}SYSCFG_RegDef_t;
+
 #define RCC			(RCC_RegDef_t*)RCC_BASEADDR
 #define GPIOA 		(GPIO_RegDef_t*)GPIOA_BASEADDR
 #define GPIOB 		(GPIO_RegDef_t*)GPIOB_BASEADDR
@@ -117,6 +152,10 @@ typedef struct
 #define GPIOG 		(GPIO_RegDef_t*)GPIOG_BASEADDR
 #define GPIOH 		(GPIO_RegDef_t*)GPIOH_BASEADDR
 #define GPIOI 		(GPIO_RegDef_t*)GPIOI_BASEADDR
+#define GPIOJ 		(GPIO_RegDef_t*)GPIOJ_BASEADDR
+#define GPIOK 		(GPIO_RegDef_t*)GPIOK_BASEADDR
+#define EXTI 		(EXTI_RegDef_t*)EXTI_BASEADDR
+#define SYSCFG		(SYSCFG_RegDef_t*)SYSCFG_BASEADDR
 /*clock enable macro for GPIOx peripherals */
 #define GPIOA_PCLK_EN (RCC)->RCC_AHB1RSTR|=(1<<0)
 #define GPIOB_PCLK_EN (RCC)->RCC_AHB1RSTR|=(1<<1)
@@ -127,7 +166,9 @@ typedef struct
 #define GPIOG_PCLK_EN (RCC)->RCC_AHB1RSTR|=(1<<6)
 #define GPIOH_PCLK_EN (RCC)->RCC_AHB1RSTR|=(1<<7)
 #define GPIOI_PCLK_EN (RCC)->RCC_AHB1RSTR|=(1<<8)
-
+#define GPIOJ_PCLK_EN (RCC)->RCC_AHB1RSTR|=(1<<9)
+#define GPIOK_PCLK_EN (RCC)->RCC_AHB1RSTR|=(1<<10)
+#define SYSCFG_PCLK_EN (RCC)->RCC_APB2LPENR|=(1<<14)
 /*clock enable macro for GPIOx peripherals */
 #define GPIOA_PCLK_DI (RCC)->RCC_AHB1RSTR &=~(1<<0)
 #define GPIOB_PCLK_DI (RCC)->RCC_AHB1RSTR &=~(1<<1)
@@ -138,9 +179,21 @@ typedef struct
 #define GPIOG_PCLK_DI (RCC)->RCC_AHB1RSTR &=~(1<<6)
 #define GPIOH_PCLK_DI (RCC)->RCC_AHB1RSTR &=~(1<<7)
 #define GPIOI_PCLK_DI (RCC)->RCC_AHB1RSTR &=~(1<<8)
-
+#define GPIOJ_PCLK_DI (RCC)->RCC_AHB1RSTR &=~(1<<9)
+#define GPIOK_PCLK_DI (RCC)->RCC_AHB1RSTR &=~(1<<10)
+#define SYSCFG_PCLK_DI (RCC)->RCC_APB2LPENR &=~(1<<14)
 #define ENABLE 	1
 #define DISABLE 0
 #define SET		1
 #define RESET	0
+
+/*IRQ Number of STM32F407xx MCU*/
+#define IRQ_NO_EXTI0 6
+#define IRQ_NO_EXTI1 7
+#define IRQ_NO_EXTI2 8
+#define IRQ_NO_EXTI3 9
+#define IRQ_NO_EXTI4 10
+#define IRQ_NO_EXTI9_5 11
+#define IRQ_NO_EXTI15_10 12
+
 #endif /* INC_STM32F407XX_H_ */
